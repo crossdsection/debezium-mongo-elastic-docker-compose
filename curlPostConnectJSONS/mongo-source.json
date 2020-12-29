@@ -1,0 +1,11 @@
+{
+  "name": "tribepod-connector", 
+  "config": {
+    "connector.class": "io.debezium.connector.mongodb.MongoDbConnector", 
+    "mongodb.user": "tempuser",
+    "mongodb.password": "temppass",
+    "mongodb.hosts": "rs0/192.168.56.102:27017",
+    "mongodb.name": "td",    
+    "mongodb.ssl.enabled" : true
+  }
+}

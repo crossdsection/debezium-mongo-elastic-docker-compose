@@ -1,0 +1,14 @@
+{
+    "name": "elastic-sink-collection",
+    "config": {
+        "connector.class": "io.confluent.connect.elasticsearch.ElasticsearchSinkConnector",
+        "tasks.max": "1",
+        "topics": "td.tempdb.collection",
+        "connection.url": "http://192.168.56.101:9200",
+        "transforms": "unwrap,extractField",
+        "transforms.unwrap.type": "io.debezium.connector.mongodb.transforms.ExtractNewDocumentState",
+        "transforms.extractField.type":"org.apache.kafka.connect.transforms.ExtractField$Key",
+        "transforms.extractField.field":"id",
+        "type.name": "collection"
+    }
+}
