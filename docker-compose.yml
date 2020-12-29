@@ -1,0 +1,63 @@
+version: "3.8"
+services:
+  mongodb:
+    image: mongo
+    hostname: mongodb
+    volumes:
+        - ./init/mongodb.conf:/etc/mongod.conf
+        - ./init/init-mongo.js:/docker-entrypoint-initdb.d/init-mongo.js
+        - ./init/db:/data/db
+        - ./init/log/:/var/log/mongodb/
+    env_file:
+        - .env
+    environment:
+        MONGO_INITDB_ROOT_USERNAME: tempuser
+        MONGO_INITDB_ROOT_PASSWORD: temppass
+        MONGO_INITDB_DATABASE: tempdb
+        MONGO_REPLICA_SET_NAME: ${MONGO_REPLICA_SET_NAME}
+    ports:
+        - "27017:27017"
+    healthcheck:
+        test: test $$(echo "rs.initiate().ok || rs.status().ok" | mongo -u $${MONGO_INITDB_ROOT_USERNAME} -p $${MONGO_INITDB_ROOT_PASSWORD} --quiet) -eq 1
+        interval: 10s
+        start_period: 30s
+    command: ["-f", "/etc/mongod.conf", "--replSet", "${MONGO_REPLICA_SET_NAME}", "--bind_ip_all"]
+  zookeeper:
+    image: debezium/zookeeper:1.3
+    ports:
+     - 2181:2181
+     - 2888:2888
+     - 3888:3888
+  kafka:
+    image: debezium/kafka:1.3
+    ports:
+     - 9092:9092
+    links:
+     - zookeeper
+    environment:
+     - ZOOKEEPER_CONNECT=zookeeper:2181
+  elastic:
+    image: docker.elastic.co/elasticsearch/elasticsearch:7.3.0
+    ports:
+     - "9200:9200"
+    environment:
+     - http.host=0.0.0.0
+     - transport.host=127.0.0.1
+     - xpack.security.enabled=false
+     - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+  connect:
+    image: crossdsection/debezium-es
+    build:
+      context: debezium-elastic
+    ports:
+     - 8083:8083
+    links:
+     - kafka
+     - mongodb
+     - elastic
+    environment:
+     - BOOTSTRAP_SERVERS=kafka:9092
+     - GROUP_ID=1
+     - CONFIG_STORAGE_TOPIC=my_connect_configs
+     - OFFSET_STORAGE_TOPIC=my_connect_offsets
+     - STATUS_STORAGE_TOPIC=my_connect_statuses
