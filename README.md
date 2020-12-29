@@ -1,5 +1,5 @@
-# debezium-mongo-elastic-docker-compose
-Docker Compose File to create realtime syncing between mongo and elastic using debezium
+# debezium-mongo-elasticsearch-docker-compose
+Docker Compose File to create realtime syncing between mongo and elasticsearch using debezium
 
 ```
 sudo docker-compose build
